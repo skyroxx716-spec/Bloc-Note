@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bloc Notes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #1a1a18;
+      --paper: #f5f0e8;
+      --ink: #1a1a18;
+      --accent: #c8a96e;
+      --accent2: #e05c3a;
+      --line: #d4c9b5;
+      --shadow: rgba(0,0,0,0.4);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px 60px;
+      font-family: 'IBM Plex Mono', monospace;
+      background-image:
+        radial-gradient(ellipse at 20% 10%, rgba(200,169,110,0.08) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 90%, rgba(224,92,58,0.06) 0%, transparent 50%);
+    }
+    header { text-align: center; margin-bottom: 36px; }
+    header h1 {
+      font-family: 'Special Elite', serif;
+      font-size: clamp(2.8rem, 8vw, 5.5rem);
+      color: var(--paper);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      line-height: 1;
+    }
+    header h1::after {
+      content: '';
+      display: block;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      margin-top: 8px;
+      border-radius: 2px;
+      animation: shimmer 3s ease-in-out infinite;
+    }
+    @keyframes shimmer {
+      0%,100% { opacity: 0.5; }
+      50% { opacity: 1; }
+    }
+    .subtitle {
+      color: var(--accent);
+      font-size: 0.78rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      margin-top: 10px;
+      opacity: 0.8;
+    }
+    #status-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+      font-size: 0.72rem;
+      color: var(--accent);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      opacity: 0.85;
+      width: 100%;
+      max-width: 900px;
+    }
+    #status-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: pulse 2s ease-in-out infinite;
+      flex-shrink: 0;
+    }
+    @keyframes pulse {
+      0%,100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+    .notepad-wrap { width: 100%; max-width: 900px; }
+    .spirals {
+      display: flex;
+      justify-content: space-around;
+      padding: 0 32px;
+      margin-bottom: -4px;
+      position: relative;
+      z-index: 2;
+    }
+    .spiral {
+      width: 24px; height: 24px;
+      border-radius: 50%;
+      border: 3px solid #555;
+      background: var(--bg);
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.5), 0 2px 6px rgba(0,0,0,0.4);
+    }
+    .paper {
+      background: var(--paper);
+      border-radius: 4px 4px 6px 6px;
+      box-shadow: 0 20px 60px var(--shadow), 0 4px 12px rgba(0,0,0,0.3);
+      position: relative;
+      overflow: hidden;
+      background-image: linear-gradient(var(--line) 1px, transparent 1px);
+      background-size: 100% 36px;
+      background-position: 0 47px;
+    }
+    .paper::before {
+      content: '';
+      position: absolute;
+      left: 68px; top: 0; bottom: 0;
+      width: 2px;
+      background: rgba(200, 80, 80, 0.35);
+      z-index: 1;
+    }
+    .holes {
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 68px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-evenly;
+      align-items: center;
+      z-index: 2;
+      pointer-events: none;
+    }
+    .hole {
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      background: var(--bg);
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.6);
+      border: 1px solid #333;
+    }
+    textarea {
+      width: 100%;
+      min-height: 520px;
+      background: transparent;
+      border: none;
+      outline: none;
+      resize: vertical;
+      padding: 12px 24px 24px 90px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 1.05rem;
+      color: var(--ink);
+      line-height: 36px;
+      letter-spacing: 0.01em;
+      position: relative;
+      z-index: 3;
+      caret-color: var(--accent2);
+    }
+    textarea::placeholder { color: #b0a89a; font-style: italic; }
+    .actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      padding: 14px 20px;
+      background: #eae4d8;
+      border-top: 1px solid var(--line);
+      position: relative;
+      z-index: 3;
+    }
+    .btn {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.82rem;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      padding: 10px 24px;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .btn:active { transform: translateY(1px); }
+    .btn-delete { background: var(--bg); color: white; }
+    .btn-save {
+      background: var(--accent2);
+      color: white;
+      box-shadow: 0 3px 10px rgba(224,92,58,0.35);
+    }
+    .btn-save:hover {
+      box-shadow: 0 5px 18px rgba(224,92,58,0.5);
+      transform: translateY(-1px);
+    }
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+    #toast {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--ink);
+      color: var(--paper);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.78rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      padding: 12px 28px;
+      border-radius: 4px;
+      border-left: 3px solid var(--accent);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+      transition: transform 0.35s cubic-bezier(.34,1.56,.64,1), opacity 0.35s ease;
+      opacity: 0;
+      z-index: 100;
+      white-space: nowrap;
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+    footer {
+      margin-top: 28px;
+      font-size: 0.68rem;
+      color: #555;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+    }
+    footer a { color: var(--accent); text-decoration: none; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Bloc Notes</h1>
+    <p class="subtitle">Partagé · Pour tout le monde</p>
+  </header>
+
+  <div id="status-bar">
+    <div id="status-dot"></div>
+    <span id="status-text">Chargement…</span>
+  </div>
+
+  <div class="notepad-wrap">
+    <div class="spirals">
+      <div class="spiral"></div><div class="spiral"></div><div class="spiral"></div>
+      <div class="spiral"></div><div class="spiral"></div><div class="spiral"></div>
+      <div class="spiral"></div><div class="spiral"></div><div class="spiral"></div>
+      <div class="spiral"></div><div class="spiral"></div><div class="spiral"></div>
+    </div>
+
+    <div class="paper">
+      <div class="holes">
+        <div class="hole"></div><div class="hole"></div>
+        <div class="hole"></div><div class="hole"></div>
+        <div class="hole"></div>
+      </div>
+
+      <textarea
+        id="notepad"
+        placeholder="Écris ici… clique sur Enregistrer pour que tout le monde voie ton texte."
+        spellcheck="true"
+      ></textarea>
+
+      <div class="actions">
+        <button class="btn btn-delete" id="btn-delete">Delete</button>
+        <button class="btn btn-save" id="btn-save">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <a href="LICENSE" target="_blank">MIT License</a> &nbsp;·&nbsp; Bloc Notes partagé
+  </footer>
+
+  <div id="toast"></div>
+
+  <script>
+    const BIN_ID     = '6a099a80c0954111d8374e53';
+    const MASTER_KEY = '$2a$10$rh71zXbaFheU/YcfQ398yOsICI9OLjvwSIYvM6XQAPnZOLtwiyH0S';
+    const BASE       = 'https://api.jsonbin.io/v3/b/' + BIN_ID;
+
+    const notepad   = document.getElementById('notepad');
+    const btnSave   = document.getElementById('btn-save');
+    const btnDelete = document.getElementById('btn-delete');
+    const statusTxt = document.getElementById('status-text');
+    const toast     = document.getElementById('toast');
+
+    function showToast(msg, duration = 2800) {
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), duration);
+    }
+
+    function setLoading(on) {
+      btnSave.disabled = on;
+      btnDelete.disabled = on;
+      btnSave.textContent = on ? 'Envoi…' : 'Enregistrer';
+    }
+
+    // ── Charger le contenu depuis JSONBin ──
+    async function loadContent() {
+      try {
+        statusTxt.textContent = 'Chargement…';
+        const res = await fetch(BASE + '/latest', {
+          headers: { 'X-Master-Key': MASTER_KEY }
+        });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        const content = data.record?.content ?? '';
+        notepad.value = content;
+        statusTxt.textContent = content.trim()
+          ? 'Contenu chargé — modifie et clique Enregistrer'
+          : 'Bloc vide — sois le premier à écrire !';
+      } catch(e) {
+        statusTxt.textContent = 'Erreur de chargement';
+        showToast('❌ Impossible de charger');
+      }
+    }
+
+    // ── Sauvegarder sur JSONBin (visible par tous) ──
+    async function saveContent() {
+      setLoading(true);
+      statusTxt.textContent = 'Enregistrement…';
+      try {
+        const res = await fetch(BASE, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Master-Key': MASTER_KEY
+          },
+          body: JSON.stringify({ content: notepad.value })
+        });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        statusTxt.textContent = '✓ Enregistré — tout le monde peut voir ton texte';
+        showToast('✓ Enregistré avec succès !');
+      } catch(e) {
+        statusTxt.textContent = 'Erreur lors de la sauvegarde';
+        showToast('❌ Erreur — réessaie');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    // ── Delete : vide localement, il faut Enregistrer pour que les autres voient ──
+    function deleteContent() {
+      notepad.value = '';
+      statusTxt.textContent = 'Effacé — clique Enregistrer pour que les autres voient';
+    }
+
+    btnSave.addEventListener('click', saveContent);
+    btnDelete.addEventListener('click', deleteContent);
+
+    // Raccourci Ctrl+S / Cmd+S
+    document.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        saveContent();
+      }
+    });
+
+    loadContent();
+  </script>
+</body>
+</html>
